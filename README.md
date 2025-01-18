@@ -1,6 +1,7 @@
 # Space Invaders Game
 
-    ![Space Invaders Screenshot](screenshot.png) <!-- Add a screenshot later -->
+    [image](https://github.com/user-attachments/assets/77a3e63d-65a1-4097-a1cd-b5677a02ca24)
+
 
     A modern implementation of the classic Space Invaders game with enhanced features, built using HTML5 Canvas and JavaScript.
 
