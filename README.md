@@ -1,8 +1,5 @@
 # Space Invaders Game
 
-    ![image](https://github.com/user-attachments/assets/d2a8075e-2f03-4c3d-99ca-b5a01a94a078)
-
-
     A modern implementation of the classic Space Invaders game with enhanced features, built using HTML5 Canvas and JavaScript.
 
     ## Features
@@ -45,7 +42,7 @@
     ### Setup
     1. Clone the repository:
        ```bash
-       git clone https://github.com/your-username/space-invaders.git
+       git clone https://github.com/JarrydGordon/Space-Invaders.git
        cd space-invaders
        ```
 
