@@ -25,11 +25,10 @@ class Player {
         }
     }
 
-    shoot(bullets) { // `bullets` is the game's bullets array
+    shoot(bullets) {
         const bulletX = this.x + this.width / 2 - 2.5;
         const bulletY = this.y;
         bullets.push(new Bullet(bulletX, bulletY, 5, 10, 'yellow', 7));
-        // Sound will be played by Game class
     }
 }
 
@@ -97,73 +96,111 @@ class Game {
         this.invaderMoveDownStep = 30;
 
         this.gameActive = true;
-        this.winMessageText = "Congratulations! You've saved the world!"; // Renamed for clarity
-        this.loseMessageText = "Game Over. The invaders have won."; // Renamed for clarity
+        this.winMessageText = "Congratulations! You've saved the world!";
+        this.loseMessageText = "Game Over. The invaders have won.";
         this.destroyedInvaders = 0;
 
         this.showBulletWarning = false;
         this.bulletWarningTimeout = null;
 
-        // Sound Management
-        this.sounds = {
-            shoot: 'shoot.wav', // Placeholder actual file names
-            explosion: 'explosion.wav',
-            gameWin: 'win.wav',
-            gameLose: 'lose.wav',
-            bulletWarning: 'warning.wav'
-        };
-        // Basic Web Audio API setup (optional, for actual sound beyond console.log)
+        this.audioCtx = null;
         try {
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         } catch (e) {
-            console.warn("Web Audio API is not supported in this browser. Sound effects will be logged only.");
-            this.audioCtx = null;
+            console.warn("Web Audio API is not supported in this browser. Sound effects will be logged or have basic beeps.");
         }
+
+        this.soundsToLoad = {
+            shoot: 'assets/sounds/shoot.wav',
+            explosion: 'assets/sounds/explosion.wav',
+            gameLose: 'assets/sounds/player_lose.wav',
+            gameWin: 'assets/sounds/game_win.wav',
+            bulletWarning: 'assets/sounds/bullet_warning.wav'
+        };
+        this.audioBuffers = {};
 
         this._setupInputHandlers();
     }
 
-    playSound(soundName) {
-        if (!this.sounds[soundName]) {
-            console.warn(`Sound ${soundName} not defined.`);
+    async loadSounds() {
+        console.log("Attempting to load sounds (simulated)...");
+        if (!this.audioCtx) {
+            console.warn("AudioContext not available. Skipping actual sound loading process.");
+            for (const [soundName, filePath] of Object.entries(this.soundsToLoad)) {
+                 this.audioBuffers[soundName] = {
+                    name: soundName,
+                    path: filePath,
+                    loaded: false,
+                    toString: function() { return `SimulatedAudioBuffer(${this.name}, NotLoaded)`; }
+                };
+            }
             return;
         }
-        console.log(`Playing sound: ${this.sounds[soundName]} (Placeholder: ${soundName})`);
 
-        // Optional: Basic beep if AudioContext is available
-        if (this.audioCtx) {
-            const oscillator = this.audioCtx.createOscillator();
-            const gainNode = this.audioCtx.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(this.audioCtx.destination);
+        for (const [soundName, filePath] of Object.entries(this.soundsToLoad)) {
+            console.log(`Simulating loading of: ${filePath} for sound event '${soundName}'`);
+            try {
+                await new Promise(resolve => setTimeout(resolve, 50));
+                // In a real scenario, the object stored here would be an actual AudioBuffer
+                this.audioBuffers[soundName] = {
+                    name: soundName,
+                    path: filePath,
+                    loaded: true,
+                    // Add dummy properties that an AudioBuffer might have, for simulation robustness
+                    duration: Math.random() * 2 + 0.5, // Simulated duration
+                    sampleRate: this.audioCtx.sampleRate, // Use actual sampleRate
+                    numberOfChannels: Math.random() > 0.5 ? 1 : 2, // Simulated channels
+                    toString: function() { return `SimulatedAudioBuffer(Name: ${this.name}, Path: ${this.path}, Loaded: ${this.loaded})`; }
+                };
+                console.log(`Successfully simulated loading of ${filePath} as '${soundName}'`);
 
-            gainNode.gain.setValueAtTime(0.1, this.audioCtx.currentTime); // Volume
-
-            if (soundName === 'shoot') {
-                oscillator.type = 'triangle';
-                oscillator.frequency.setValueAtTime(440, this.audioCtx.currentTime); // A4
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, this.audioCtx.currentTime + 0.1);
-                oscillator.start(this.audioCtx.currentTime);
-                oscillator.stop(this.audioCtx.currentTime + 0.1);
-            } else if (soundName === 'explosion') {
-                oscillator.type = 'noise';
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, this.audioCtx.currentTime + 0.3);
-                oscillator.start(this.audioCtx.currentTime);
-                oscillator.stop(this.audioCtx.currentTime + 0.3);
-            } else if (soundName === 'gameLose') {
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(150, this.audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, this.audioCtx.currentTime + 1.0);
-                oscillator.start(this.audioCtx.currentTime);
-                oscillator.stop(this.audioCtx.currentTime + 1.0);
-            } else if (soundName === 'gameWin') {
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(660, this.audioCtx.currentTime); // E5
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, this.audioCtx.currentTime + 0.8);
-                oscillator.start(this.audioCtx.currentTime);
-                oscillator.stop(this.audioCtx.currentTime + 0.8);
+            } catch (error) {
+                console.error(`Error simulating loading sound ${soundName} from ${filePath}:`, error);
+                this.audioBuffers[soundName] = { name: soundName, path: filePath, loaded: false, error: error, toString: function() { return `SimulatedAudioBuffer(${this.name}, ErrorLoading)`; } };
             }
-            // Add more basic sounds as needed
+        }
+        console.log("All sounds (simulated) loading process complete.");
+    }
+
+    playSound(soundName) {
+        if (!this.audioCtx) {
+            // This case is logged during constructor and loadSounds, so just return.
+            return;
+        }
+
+        const bufferInfo = this.audioBuffers[soundName];
+        const soundPath = this.soundsToLoad[soundName] || "N/A (sound not in soundsToLoad)";
+
+        if (bufferInfo && bufferInfo.loaded) {
+            try {
+                const source = this.audioCtx.createBufferSource();
+
+                // Crucial part: source.buffer expects a real AudioBuffer.
+                // In our simulation, bufferInfo is our placeholder object.
+                // This assignment will likely not make actual sound in a browser
+                // but it allows us to test the Web Audio API call sequence.
+                // A browser might log a warning or error here in the console
+                // if it strictly type-checks source.buffer.
+                source.buffer = bufferInfo;
+
+                console.log(`Attempting to play sound '${soundName}' (${bufferInfo.path}) using AudioBufferSourceNode. Buffer details: ${bufferInfo.toString()}`);
+
+                source.connect(this.audioCtx.destination);
+                source.start(0); // Start playback now
+                // console.log(`Sound '${soundName}' started via AudioBufferSourceNode.`);
+
+            } catch (error) {
+                console.error(`Error playing sound '${soundName}' with AudioBufferSourceNode:`, error);
+                console.error(`Buffer used:`, bufferInfo);
+                // This might catch errors if source.buffer is not a valid type
+                // or if other Web Audio API constraints are violated.
+            }
+        } else {
+            if (!bufferInfo) {
+                console.warn(`Sound '${soundName}' (${soundPath}) was not found in audioBuffers. Check soundsToLoad definition and loadSounds method.`);
+            } else if (!bufferInfo.loaded) {
+                console.warn(`Sound '${soundName}' (${soundPath}) is in audioBuffers but not marked as loaded. Possible loading error or AudioContext issue.`);
+            }
         }
     }
 
@@ -173,7 +210,7 @@ class Game {
     }
 
     handleKeyDown(e) {
-        if (!this.gameActive && e.key !== 'F5') return; // Allow F5 for restart
+        if (!this.gameActive && e.key !== 'F5' && e.key !== 'f5') return;
         if (e.key === 'ArrowLeft' || e.key === 'a') {
             this.player.dx = -this.player.speed;
         } else if (e.key === 'ArrowRight' || e.key === 'd') {
@@ -184,7 +221,7 @@ class Game {
                 this.bulletsRemaining--;
                 this.playSound('shoot');
             } else if (this.gameActive && this.bulletsRemaining <= 0) {
-                this.showBulletWarningMessage(); // This method now also plays a sound
+                this.showBulletWarningMessage();
             }
         }
     }
@@ -196,7 +233,6 @@ class Game {
     }
 
     createInvaders() {
-        // ... (rest of the method is unchanged)
         this.invaders = [];
         this.destroyedInvaders = 0;
         const invaderWidth = 40;
@@ -235,18 +271,17 @@ class Game {
             }
         }
 
-        this.updateInvaders(); // This can change gameActive state
-        if (!this.gameActive) return; // If updateInvaders caused a loss, stop further updates this frame
+        this.updateInvaders();
+        if (!this.gameActive) return;
 
-        this.checkCollisions(); // This can change gameActive state
-        if (!this.gameActive) return; // If checkCollisions caused a loss, stop further updates
+        this.checkCollisions();
+        if (!this.gameActive) return;
 
-        this.checkWinLossConditions(); // Final check
+        this.checkWinLossConditions();
     }
 
     updateInvaders() {
         let moveDown = false;
-        let gameLostThisUpdate = false; // Flag to check if game is lost in this specific update cycle
 
         for (const invader of this.invaders) {
             if (invader.alive) {
@@ -265,25 +300,21 @@ class Game {
                 if (moveDown) {
                     invader.y += this.invaderMoveDownStep + invader.verticalSpeedOffset;
                 }
-                // Check if invader reached bottom AFTER moving
                 if (invader.y + invader.height >= this.canvas.height) {
-                    if (this.gameActive) { // Check if game is currently active before declaring loss
+                    if (this.gameActive) {
                         this.playSound('gameLose');
-                        gameLostThisUpdate = true;
                     }
                     this.gameActive = false;
+                    return;
                 }
             }
         }
-        if (gameLostThisUpdate) return; // Stop further processing if game lost
     }
 
     checkCollisions() {
-        let gameLostThisCollision = false;
-        // Bullet-Invader collision
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             for (let j = this.invaders.length - 1; j >= 0; j--) {
-                if (this.invaders[j].alive && this.bullets[i]) { // ensure bullet exists
+                if (this.invaders[j].alive && this.bullets[i]) {
                     const bullet = this.bullets[i];
                     const invader = this.invaders[j];
                     if (
@@ -293,7 +324,7 @@ class Game {
                         bullet.y + bullet.height > invader.y
                     ) {
                         invader.alive = false;
-                        this.bullets.splice(i, 1); // Remove bullet
+                        this.bullets.splice(i, 1);
                         this.destroyedInvaders++;
                         this.invaderSpeed += 0.05;
                         this.playSound('explosion');
@@ -303,7 +334,6 @@ class Game {
             }
         }
 
-        // Invader-Player collision
         for (const invader of this.invaders) {
             if (invader.alive) {
                 if (
@@ -314,17 +344,16 @@ class Game {
                 ) {
                     if (this.gameActive) {
                         this.playSound('gameLose');
-                        gameLostThisCollision = true;
                     }
                     this.gameActive = false;
-                    if (gameLostThisCollision) return; // Stop if game lost during collision check
+                    return;
                 }
             }
         }
     }
 
     checkWinLossConditions() {
-        if (!this.gameActive) return; // If game already inactive, conditions met
+        if (!this.gameActive) return;
 
         if (this.destroyedInvaders === this.totalInvaders) {
             if (this.gameActive) {
@@ -332,7 +361,7 @@ class Game {
             }
             this.gameActive = false;
         } else if (this.bulletsRemaining <= 0 && this.destroyedInvaders < this.totalInvaders && this.bullets.length === 0) {
-            let bulletsActiveOnScreen = false; // Check if any bullets are still visibly moving
+            let bulletsActiveOnScreen = false;
             for(const bullet of this.bullets) {
                 if(bullet.y > 0 && bullet.y < this.canvas.height) {
                     bulletsActiveOnScreen = true;
@@ -346,7 +375,6 @@ class Game {
                 this.gameActive = false;
             }
         }
-        // Note: Invader reaching bottom or hitting player already sets gameActive = false and plays sound in their respective methods.
     }
 
     draw() {
@@ -373,7 +401,6 @@ class Game {
     }
 
     drawStats() {
-        // ... (unchanged)
         this.ctx.fillStyle = 'white';
         this.ctx.font = '16px Arial';
         this.ctx.fillText(`Bullets: ${this.bulletsRemaining}`, 10, 20);
@@ -383,7 +410,6 @@ class Game {
     }
 
     calculateDeathProbability() {
-        // ... (unchanged)
         const remainingInvaders = this.totalInvaders - this.destroyedInvaders;
         if (remainingInvaders === 0) return 0;
         const probability = (remainingInvaders / this.totalInvaders) * (1 - (this.bulletsRemaining / 250)) * 100;
@@ -391,7 +417,6 @@ class Game {
     }
 
     drawWinMessage() {
-        // ... (using this.winMessageText)
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.fillStyle = 'green';
@@ -403,7 +428,6 @@ class Game {
     }
 
     drawLoseMessage() {
-        // ... (using this.loseMessageText)
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.fillStyle = 'red';
@@ -416,7 +440,7 @@ class Game {
 
     showBulletWarningMessage() {
         this.showBulletWarning = true;
-        this.playSound('bulletWarning'); // Play sound for bullet warning
+        this.playSound('bulletWarning');
         if (this.bulletWarningTimeout) clearTimeout(this.bulletWarningTimeout);
         this.bulletWarningTimeout = setTimeout(() => {
             this.showBulletWarning = false;
@@ -424,7 +448,6 @@ class Game {
     }
 
     drawBulletWarning() {
-        // ... (unchanged)
         this.ctx.fillStyle = 'orange';
         this.ctx.font = '20px Arial';
         this.ctx.textAlign = 'center';
@@ -437,12 +460,13 @@ class Game {
         if (this.gameActive) {
             requestAnimationFrame(() => this.gameLoop());
         } else {
-            // Ensure final state (win/loss message) is drawn
             this.draw();
         }
     }
 
-    start() {
+    async start() {
+        await this.loadSounds();
+
         this.createInvaders();
         this.gameActive = true;
         this.bulletsRemaining = 250;
@@ -450,10 +474,9 @@ class Game {
         this.invaderSpeed = 1;
         this.player.x = this.canvas.width / 2 - 25;
         this.player.y = this.canvas.height - 30;
-        this.player.dx = 0; // Reset player movement
+        this.player.dx = 0;
         this.bullets = [];
         this.invaderDirection = 1;
-        // Clear any previous warnings or messages
         this.showBulletWarning = false;
         if (this.bulletWarningTimeout) clearTimeout(this.bulletWarningTimeout);
 
