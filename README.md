@@ -7,31 +7,34 @@
     - 🚀 Classic Space Invaders gameplay
     - 🎯 Dynamic death probability calculation
     - 🔢 Limited bullets (3x number of invaders)
-    - ⚡ Fast-paced invader movement
+    - ⚡ Fast-paced invader movement, with some randomized individual variations for a more dynamic swarm.
     - 📊 Real-time statistics display
     - 🚨 Bullet depletion warning system
     - 🏆 Win/Lose conditions with messages
     - 🎮 Keyboard controls for movement and shooting
+    - 🧱 **Object-Oriented Design:** Core game logic has been refactored into JavaScript classes (`Game`, `Player`, `Invader`, `Bullet`) for improved structure, maintainability, and scalability.
+    - 🔊 **Sound System Framework:** Integrated with the Web Audio API, preparing the game for sound effects and music (actual audio assets and full playback are implemented via simulation, ready for real assets).
 
     ## How to Play
 
     1. **Movement**:
-       - Use ← (Left Arrow) to move left
-       - Use → (Right Arrow) to move right
+       - Use ← (Left Arrow) or 'A' key to move left
+       - Use → (Right Arrow) or 'D' key to move right
 
     2. **Shooting**:
        - Press Spacebar to shoot bullets
-       - You have limited bullets (3x number of invaders)
+       - You have limited bullets (currently 250, can be adjusted)
 
     3. **Gameplay**:
        - Destroy all invaders to win
-       - Avoid letting invaders reach your ship
+       - Prevent invaders from reaching the bottom of the screen
+       - Avoid collision with invaders
        - Watch the death probability increase as invaders get closer
        - Manage your bullets carefully
 
     4. **Game End**:
        - Win: Destroy all invaders
-       - Lose: Invaders reach your ship or run out of bullets
+       - Lose: Invaders reach the bottom, player collides with an invader, or you run out of bullets with invaders remaining.
 
     ## Installation
 
@@ -45,53 +48,50 @@
        git clone https://github.com/JarrydGordon/Space-Invaders.git
        cd space-invaders
        ```
+       (Note: The actual repo URL might differ for this exercise)
 
-    2. Install dependencies:
+    2. Install dependencies (if any, for this project, it's vanilla JS but Vite was mentioned previously):
        ```bash
        npm install
        ```
+       (If not using Vite or similar, this step might not be needed for vanilla JS)
 
-    3. Start the development server:
+    3. Start the development server (if using Vite):
        ```bash
        npm run dev
        ```
+       If not using a dev server, simply open `index.html` in your browser.
 
-    4. Open your browser and navigate to:
-       ```
-       http://localhost:5173
-       ```
+    4. Open your browser and navigate to the provided URL (e.g., `http://localhost:5173` for Vite) or the `index.html` file.
 
     ## Game Mechanics
 
     ### Death Probability Calculation
     The game calculates death probability based on:
-    - Number of remaining invaders (40%)
-    - Proximity of invaders to the ship (40%)
-    - Remaining bullets (20%)
-    - Immediate 100% if invaders reach the ship
+    - Number of remaining invaders
+    - Remaining bullets
+    (The original README mentioned proximity, which is not explicitly in the current simplified `calculateDeathProbability` function in `game.js`.)
 
     ### Bullet System
-    - Total bullets = 3 × number of invaders
-    - When bullets run out, a warning appears
-    - Warning message: "OhNOO! Chance of Death 100%"
+    - Total bullets are initialized (e.g., 250).
+    - When bullets run out, a warning appears and a sound is triggered.
 
     ### Invader Movement
-    - Horizontal speed: 3x faster than classic
-    - Vertical movement: Smaller increments (10px)
-    - Movement pattern: Side-to-side with downward steps
+    - Horizontal speed increases as invaders are destroyed.
+    - Some invaders have slight variations in their horizontal and vertical movement speeds.
+    - Movement pattern: Side-to-side with downward steps when an edge is hit.
 
     ## Project Structure
 
+    The project primarily consists of:
     ```
     space-invaders/
-    ├── public/               # Static assets
-    ├── src/
-    │   ├── main.js           # Main game logic
-    │   └── index.html        # Game HTML structure
-    ├── package.json          # Project dependencies
-    ├── README.md             # This file
-    └── vite.config.js        # Vite configuration
+    ├── index.html            # Main HTML file, sets up the canvas and loads scripts
+    ├── game.js               # Core game logic, including all class definitions (Game, Player, Invader, Bullet)
+    ├── main.js               # Initializes and starts the Game object from game.js
+    └── README.md             # This file
     ```
+    (Assuming no `public/` or `src/` subdirectories for this vanilla JS version unless Vite is actively used).
 
     ## Contributing
 
@@ -108,6 +108,7 @@
     MIT License
 
     Copyright (c) 2025 [Jarryd Gordon]
+    (Year and name might need updating if this is a template)
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -130,9 +131,8 @@
     ## Acknowledgments
 
     - Inspired by the classic Space Invaders game
-    - Built using HTML5 Canvas and JavaScript
-    - Developed with Vite for fast development
-    - Special thanks to the open source community
+    - Built using HTML5 Canvas and JavaScript with modern OOP practices
+    - Sound system framework uses the Web Audio API
 
     ## Support
 
